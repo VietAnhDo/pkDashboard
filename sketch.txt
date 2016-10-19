@@ -1,0 +1,24 @@
+Server:
+
+- organization statistics
+	+ make_a_task_statistics(task, type)
+	+ make_a_resource_statistics(resource, type) // data = in organization
+	+ make_a_project_statistic(project, type)
+	+ make_a_organization_statistic(organization, type)
+
+- project statistics
+	+ make_a_task_statistics(task, type)
+	+ make_a_resource_statistics(resource, data) // data = in project
+	+ make_a_project_statistics(project, type)
+
+- task statistics
+	+ make_a_task_statistics(task, type)
+
+- resource statistics
+	+ make_a_resource_statistics(resource, type) // data = all
+
+Client:
+
+- line chart
+- pie chart
+- column chart
