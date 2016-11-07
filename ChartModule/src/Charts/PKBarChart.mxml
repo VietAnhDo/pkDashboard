@@ -4,21 +4,18 @@
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 height="100%" width="100%"
 		 creationComplete="panel1_initializeHandler(event)">
-	<fx:Declarations>
-		<s:NumberFormatter id="numForm" useGrouping="true" fractionalDigits="0"/>
-		<mx:CategoryAxis id="a1" categoryField="Name"/>
-	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
 			import mx.charts.ChartItem;
 			import mx.charts.HitData;
+			import mx.charts.chartClasses.IAxis;
 			import mx.charts.chartClasses.Series;
 			import mx.charts.series.BarSeries;
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.graphics.SolidColorStroke;
 			[Bindable]
-			private var taskData:ArrayCollection = new ArrayCollection( [
+			private var defaultChartData:ArrayCollection = new ArrayCollection( [
 				{Name: "Task 1", Planned: 0.8, Actual: 0.4},
 				{Name: "Task 2", Planned: 0.7, Actual: 0.4},
 				{Name: "Task 3", Planned: 0.6, Actual: 0.3},
@@ -38,12 +35,14 @@
 			public function set barSeries(data:Array):void
 			{
 				var newBarSeries:BarSeries;
+				var attr:String;
+				var barSeries:Object;
 				_barSeries = []
-				for each(var barSeries:Object in data) {
+				for each(barSeries in data) {
 					if(barSeries.hasOwnProperty("xField") && barSeries.hasOwnProperty("displayName")) {
 						newBarSeries = new BarSeries();
-						for(var attr:String in  barSeries) {
-							if(newBarSeries.hasOwnProperty(attr))
+						for each(attr in  ["xField", "displayName", "labelFunction", "labelPosition"]) {
+							if(barSeries.hasOwnProperty(attr))
 								newBarSeries[attr] = barSeries[attr];
 						}
 						_barSeries.push(newBarSeries);
@@ -54,62 +53,79 @@
 			private function labelFunc1(element:ChartItem, series:Series):String {
 				return (BarSeries(series).xField=="Planned" ? element.item.Planned : element.item.Actual ) * 100 + '%'; 
 			}
-			private function default_hori_label_func(cat:Object, pcat:Object, ax:LinearAxis):String 
+			private function default_hori_label_func(labelValue:Object, previousValue:Object, axis:IAxis):String 
 			{
-				return Number(cat) * 100 + "%";
+				return Number(labelValue) * 100 + "%";
 			}
 			private function default_data_tip_func(hitData:HitData):String {
 				var barSeries:BarSeries = BarSeries(hitData.element); 
-				return barSeries.xField=="Planned" ? "<b>"+barSeries.displayName+"</b><br>" + hitData.item.Name + "<br>" + hitData.item.Planned * 100 + "%"
-					: "<b>"+barSeries.displayName+"</b><br>" + hitData.item.Name + "<br>" + hitData.item.Actual * 100 + "%";
+				return "<b>"+barSeries.displayName+"</b><br>" + hitData.item.Name + "<br>" + hitData.item[barSeries.xField];
 			}
-			
+			private var defaultBarSeries:Array = [
+				{xField: "Planned", displayName: "PlannedDis"},
+				{xField: "Actual", displayName: "ActualDis"},
+			];
+			[Bindable]
+			private var horiLabelFunc:Function;
+			[Bindable]
+			private var chartData:ArrayCollection = defaultChartData;
+			[Bindable]
+			private var dataTipFunc:Function = default_data_tip_func;
+			[Bindable]
+			private var categoryField:String;
+			[Bindable]
+			private var barSetType:String;
+			[Bindable]
+			private var minimum:Number;
+			[Bindable]
+			private var maximum:Number;
+			private var _barSeries:Array;
+			private var defaultProperties:Object = {
+				barSetType: "clustered",
+				dataTipFunc: default_data_tip_func,
+				barSeries: defaultBarSeries,
+				mininum: -1,
+				maximum: 1,
+				horiLabelFunc: default_hori_label_func
+			}
+				
 			protected function panel1_initializeHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				var s:SolidColorStroke = new SolidColorStroke(0x0000FF,2);
-				s.alpha = .5;
-				hari.setStyle("axisStroke",s);
-				vart.setStyle("axisStroke",s);
-				bar.height = taskData.length / 4.0 * group.height;
-				//				trace(bar.percentHeight);
-				//				trace(group.percentHeight);
-				//				trace(group.height);
-				barSeries = [
-					{xField: "Planned", displayName: "PlannedDis"},
-					{xField: "Actual", displayName: "ActualDis"},
-				];
+				var s:SolidColorStroke = new SolidColorStroke(0x333333,1);
+				hori.setStyle("axisStroke",s);
+				vert.setStyle("axisStroke",s);
+				chart.height = defaultChartData.length / 4.0 * group.height;
 				
-			}
-			private var hariLabelFunc:Function;
-			[Bindable]
-			public var barData:ArrayCollection = taskData;
-			[Bindable]
-			public var dataTipFunc:Function = default_data_tip_func;
-			[Bindable]
-			public var categoryField:String = "Name";
-			[Bindable]
-			public var barSetType:String = "clustered";
-			private var _barSeries:Array;
-			/*
-			data: {
-			barData:ArrayCollection     -> BarChart
-			dataTipFunction:Function         -> BarChart
-			categoryField:String             -> CategoryAxis
-			barSetType:String                -> BarSet type
-			barSeries:Array of Object: {
-			[xField, displayName, labelFunction, labelPosition],
-			[xField, displayName, labelFunction, labelPosition],
-			...
-			}
+				// default barSeries
+				this.load_data("Name", defaultChartData, null);
 			}
 			
-			*/
-			public function load_data(data:Object):void {
-				for(var attr:String in data) {
-					if(this.hasOwnProperty(attr)) {
-						this[attr] = data[attr];
+			/**
+			 * @param categoryField Specifies the field of the data provider containing the text for the labels. If this property is null, CategoryAxis assumes that the dataProvider contains an array of Strings.
+			 * @param chartData dataProvider Specifies the data provider for the chart. Data series rendered by the chart are assigned this data provider
+			 * @param option extra attributes for chart
+			 * <table>
+			 * 		<tr><td> barSetType</td><td>"overlaid", "cluster", "stacked"</td></tr>
+			 * 		<tr><td> dataTipFunc</td><td> <code>function (hitData:HitData):String<code></td></tr>
+			 * 		<tr><td> barSeries</td><td><code>Object</code><br><code>{<br>
+			 * 		[xField, displayName, labelFunction, labelPosition],<br>
+			 * 		[xField, displayName, labelFunction, labelPosition],<br>...<br>}<br>labelFunction</code> like <code>function (element:ChartItem, series:Series)</code></td></tr>
+			 * 		<tr><td> minimum</td><td>Number</td></tr>
+			 * 		<tr><td> maximum</td><td>Number</td></tr>
+			 * 		<tr><td> horiLabelFunc</td><td><code>function (labelValue:Object, previousValue:Object, axis:IAxis):String</code></td></tr>
+			 * </table> 
+			 */
+			public function load_data(categoryField:String, chartData:ArrayCollection, option:Object):void {
+				this.categoryField = categoryField;
+				this.chartData = chartData;
+				var attr:String;
+				for each(attr in ["barSetType", "dataTipFunc", "barSeries", "minimum", "maximum", "horiLabelFunc"]) {
+					if(option!=null && option.hasOwnProperty(attr)) {
+						this[attr] = option[attr];
 					}
+					else
+						this[attr] = defaultProperties[attr];
 				}
 			}
 			
@@ -125,7 +141,7 @@
 			<s:layout>
 				<s:VerticalLayout/>
 			</s:layout>
-			<mx:BarChart id="bar" color="0x323232" showDataTips="true" dataProvider="{barData}" dataTipFunction="{dataTipFunc}">
+			<mx:BarChart id="chart" color="0x323232" showDataTips="true" dataProvider="{chartData}" dataTipFunction="{dataTipFunc}">
 				
 				<mx:seriesFilters>
 					<!--<s:DropShadowFilter distance="1" color="0x333333" alpha="1"/>-->
@@ -135,15 +151,15 @@
 					<mx:CategoryAxis categoryField="{categoryField}" id='verticalAxis' />
 				</mx:verticalAxis>
 				<mx:horizontalAxis>
-					<mx:LinearAxis maximum="1" minimum="0" id='horizontalAxis'
-								   labelFunction="{default_hori_label_func}"/>
+					<mx:LinearAxis maximum="{maximum}" minimum="{minimum}" id='horizontalAxis'
+								   labelFunction="{horiLabelFunc}"/>
 				</mx:horizontalAxis>
 				<mx:verticalAxisRenderers>
-					<mx:AxisRenderer id='vart' axis="{verticalAxis}">
+					<mx:AxisRenderer id='vert' axis="{verticalAxis}">
 					</mx:AxisRenderer>
 				</mx:verticalAxisRenderers>
 				<mx:horizontalAxisRenderers>
-					<mx:AxisRenderer id='hari' axis="{horizontalAxis}">
+					<mx:AxisRenderer id='hori' axis="{horizontalAxis}">
 						
 					</mx:AxisRenderer>
 				</mx:horizontalAxisRenderers>
@@ -152,7 +168,7 @@
 					</mx:BarSet>
 				</mx:series>
 			</mx:BarChart>
-			<mx:Legend dataProvider="{bar}" color="0x323232" height="20"/>
+			<mx:Legend dataProvider="{chart}" color="0x323232" height="20"/>
 		</s:Group>
 	</s:Scroller>
 </s:Panel>

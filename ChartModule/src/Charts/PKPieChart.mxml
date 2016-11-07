@@ -2,10 +2,12 @@
 <s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 height="100%" width="100%">
+		 height="100%" width="100%"
+		 initialize="panel1_initializeHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
 			
 			private function default_label_func(data:Object, field:String, index:Number, percentValue:Number):String {
 				var temp:String= "" + Math.round(percentValue*100)/100;
@@ -13,24 +15,24 @@
 					return data[this.nameField] + ": " + '\n' + "Total "+ this.field +": " + data[this.field] + '\n' + temp + "%";
 				return "label function error!";
 			}
-			
-			[Bindable]
-			private var labelPosition:String = "callout";
-			[Bindable]
-			private var field:String = "Gold";
-			[Bindable]
-			private var nameField:String = "Country";
-			[Bindable]
-			private var chartData:ArrayCollection = new ArrayCollection( [
+			private var defaultChartData:ArrayCollection = new ArrayCollection( [
 				{ Country: "USA", Gold: 35, Silver:39, Bronze: 29 },
 				{ Country: "China", Gold: 32, Silver:17, Bronze: 14 },
 				{ Country: "Russia", Gold: 27, Silver:27, Bronze: 38 },
 			]);
 			[Bindable]
-			private var labelFunc:Function = default_label_func;
+			private var labelPosition:String;
+			[Bindable]
+			private var field:String;
+			[Bindable]
+			private var nameField:String;
+			[Bindable]
+			private var chartData:ArrayCollection;
+			[Bindable]
+			private var labelFunc:Function;
 			private var defaultProperties:Object = {
 				labelFunc: default_label_func,
-				labelPosition: "none"
+				labelPosition: "callout"
 			};
 			/**
 			 * @param field a <code>String</code> Specifies the field of the data provider that determines the data of each wedge of the PieChart control.
@@ -54,6 +56,9 @@
 					else
 						this[attr] = defaultProperties[attr];
 				}
+			}
+			public function panel1_initializeHandler(event:FlexEvent):void {
+				this.load_data("Silver", "Country", defaultChartData, null);
 			}
 			
 		]]>
