@@ -27,6 +27,19 @@
 			
 			
 			[Bindable]
+			public function get chartData():ArrayCollection
+			{
+				if( _chartData != null)
+					chart.height = _chartData.length * 40;
+				return _chartData;
+			}
+
+			public function set chartData(value:ArrayCollection):void
+			{
+				_chartData = value;
+			}
+
+			[Bindable]
 			public function get barSeries():Array
 			{
 				return _barSeries;
@@ -42,7 +55,7 @@
 					if(barSeries.hasOwnProperty("xField") && barSeries.hasOwnProperty("displayName")) {
 						newBarSeries = new BarSeries();
 						for each(attr in  ["xField", "displayName", "labelFunction", "labelPosition"]) {
-							if(barSeries.hasOwnProperty(attr))
+							if(barSeries!=null && barSeries.hasOwnProperty(attr))
 								newBarSeries[attr] = barSeries[attr];
 						}
 						_barSeries.push(newBarSeries);
@@ -67,10 +80,9 @@
 			];
 			[Bindable]
 			private var horiLabelFunc:Function;
+			private var _chartData:ArrayCollection;
 			[Bindable]
-			private var chartData:ArrayCollection = defaultChartData;
-			[Bindable]
-			private var dataTipFunc:Function = default_data_tip_func;
+			private var dataTipFunc:Function;
 			[Bindable]
 			private var categoryField:String;
 			[Bindable]
@@ -83,7 +95,6 @@
 			private var defaultProperties:Object = {
 				barSetType: "clustered",
 				dataTipFunc: default_data_tip_func,
-				barSeries: defaultBarSeries,
 				mininum: -1,
 				maximum: 1,
 				horiLabelFunc: default_hori_label_func
@@ -95,32 +106,39 @@
 				var s:SolidColorStroke = new SolidColorStroke(0x333333,1);
 				hori.setStyle("axisStroke",s);
 				vert.setStyle("axisStroke",s);
-				chart.height = defaultChartData.length / 4.0 * group.height;
 				
-				// default barSeries
-				this.load_data("Name", defaultChartData, null);
+				// default data
+				this.load_data("Name", defaultChartData, defaultBarSeries, null);
 			}
 			
 			/**
 			 * @param categoryField Specifies the field of the data provider containing the text for the labels. If this property is null, CategoryAxis assumes that the dataProvider contains an array of Strings.
 			 * @param chartData dataProvider Specifies the data provider for the chart. Data series rendered by the chart are assigned this data provider
+			 * @param barSeries
+			 * <table>
+			 * 		<tr><td>barSeries</td>
+			 * 			<td><code>Array of Objects</code><br><code>{<br>
+			 * 				[xField, displayName, labelFunction, labelPosition],<br>
+			 * 				[xField, displayName, labelFunction, labelPosition],<br>...<br>}<br>
+			 * 				labelFunction</code> like <code>function (element:ChartItem, series:Series)</code>
+			 * 			</td>
+			 * 		</tr>
+			 * </table>
 			 * @param option extra attributes for chart
 			 * <table>
-			 * 		<tr><td> barSetType</td><td>"overlaid", "cluster", "stacked"</td></tr>
+			 * 		<tr><td> barSetType</td><td>"overlaid", "clustered", "stacked"</td></tr>
 			 * 		<tr><td> dataTipFunc</td><td> <code>function (hitData:HitData):String<code></td></tr>
-			 * 		<tr><td> barSeries</td><td><code>Object</code><br><code>{<br>
-			 * 		[xField, displayName, labelFunction, labelPosition],<br>
-			 * 		[xField, displayName, labelFunction, labelPosition],<br>...<br>}<br>labelFunction</code> like <code>function (element:ChartItem, series:Series)</code></td></tr>
 			 * 		<tr><td> minimum</td><td>Number</td></tr>
 			 * 		<tr><td> maximum</td><td>Number</td></tr>
 			 * 		<tr><td> horiLabelFunc</td><td><code>function (labelValue:Object, previousValue:Object, axis:IAxis):String</code></td></tr>
 			 * </table> 
 			 */
-			public function load_data(categoryField:String, chartData:ArrayCollection, option:Object):void {
+			public function load_data(categoryField:String, chartData:ArrayCollection, barSeries:Array, option:Object):void {
 				this.categoryField = categoryField;
 				this.chartData = chartData;
+				this.barSeries = barSeries;
 				var attr:String;
-				for each(attr in ["barSetType", "dataTipFunc", "barSeries", "minimum", "maximum", "horiLabelFunc"]) {
+				for each(attr in ["barSetType", "dataTipFunc", "minimum", "maximum", "horiLabelFunc"]) {
 					if(option!=null && option.hasOwnProperty(attr)) {
 						this[attr] = option[attr];
 					}
@@ -134,7 +152,7 @@
 	
 	
 	<s:layout>
-		<s:HorizontalLayout padding="5"/>
+		<s:VerticalLayout padding="5"/>
 	</s:layout>
 	<s:Scroller height='100%' width='100%'>
 		<s:Group id='group'>
@@ -168,7 +186,7 @@
 					</mx:BarSet>
 				</mx:series>
 			</mx:BarChart>
-			<mx:Legend dataProvider="{chart}" color="0x323232" height="20"/>
 		</s:Group>
 	</s:Scroller>
+	<mx:Legend dataProvider="{chart}" color="0x323232" height="20"/>
 </s:Panel>

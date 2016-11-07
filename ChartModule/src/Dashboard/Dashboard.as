@@ -1,5 +1,9 @@
 package Dashboard
 {
+	import flash.events.MouseEvent;
+	import flash.sampler.NewObjectSample;
+	
+	import spark.components.Button;
 	import spark.components.Group;
 	import spark.components.SkinnableContainer;
 	
@@ -8,6 +12,7 @@ package Dashboard
 	import Charts.PKPieChart;
 	
 	import skin.DashboardSkin;
+	import skin.PKChartSkin;
 	
 	public class Dashboard extends SkinnableContainer
 	{
@@ -17,6 +22,12 @@ package Dashboard
 		public var midGroup:Group;
 		[SkinPart(required="true")]
 		public var botGroup:Group;
+		[SkinPart(required="true")]
+		public var addPieButton:Button;
+		[SkinPart(required="true")]
+		public var addBarButton:Button;
+		[SkinPart(required="true")]
+		public var addColumnButton:Button;
 		public function Dashboard()
 		{
 			super();
@@ -24,33 +35,44 @@ package Dashboard
 		}
 		
 		public function init():void {
-			var p:PKPieChart = new PKPieChart();
-			p.title = "pie chart 1";
-			var b:PKBarChart = new PKBarChart();
-			b.title = "bar chart 1";
-			var c:PKColumnChart = new PKColumnChart();
-			c.title = "column chart 1";
-			topGroup.addElement(p);
-			topGroup.addElement(b);
-			topGroup.addElement(c);
-			p = new PKPieChart();
-			p.title = "pie chart 2";
-			b = new PKBarChart();
-			b.title = "bar chart 2";
-			c = new PKColumnChart();
-			c.title = "column chart 2";
-			midGroup.addElement(p);
-			midGroup.addElement(b);
-			midGroup.addElement(c);
-			p = new PKPieChart();
-			p.title = "pie chart 3";
-			b = new PKBarChart();
-			b.title = "bar chart 3";
-			c = new PKColumnChart();
-			c.title = "column chart 3";
-			botGroup.addElement(p);
-			botGroup.addElement(b);
-			botGroup.addElement(c);
+			addBarButton.addEventListener(MouseEvent.CLICK, addBarButton_click);
+			addColumnButton.addEventListener(MouseEvent.CLICK, addColumnButton_click);
+			addPieButton.addEventListener(MouseEvent.CLICK, addPieButton_click);
+		}
+		private function getAvailabelGroup():Group {
+			if( topGroup.numChildren < 3 )
+				return topGroup;
+			if( midGroup.numChildren < 3 )
+				return midGroup;
+			if( botGroup.numChildren < 3)
+				return botGroup;
+			return null;
+		}
+		private function addBarButton_click(event: MouseEvent):void {
+			var group:Group = getAvailabelGroup();
+			if( group != null) {
+				var barChart:PKBarChart = new PKBarChart();
+				barChart.setStyle("skinClass", PKChartSkin);
+				barChart.width = group.width/3;
+				group.addElement(barChart);
+			}
+		}
+		private function addPieButton_click(event: MouseEvent):void {
+			var group:Group = getAvailabelGroup();
+			if( group != null) {
+				var pieChart:PKPieChart = new PKPieChart();
+				pieChart.setStyle("skinClass", PKChartSkin);
+				pieChart.width = group.width/3;
+				group.addElement(pieChart);
+			}
+		}
+		private function addColumnButton_click(event: MouseEvent):void {
+			var group:Group = getAvailabelGroup();
+			if( group != null) {
+				var columnChart:PKColumnChart = new PKColumnChart();
+				columnChart.setStyle("skinClass", PKChartSkin);
+				group.addElement(columnChart);
+			}
 		}
 	}
 }

@@ -11,8 +11,8 @@
 			
 			private function default_label_func(data:Object, field:String, index:Number, percentValue:Number):String {
 				var temp:String= "" + Math.round(percentValue*100)/100;
-				if( data.hasOwnProperty(this.nameField) && data.hasOwnProperty(this.field) )
-					return data[this.nameField] + ": " + '\n' + "Total "+ this.field +": " + data[this.field] + '\n' + temp + "%";
+				if( data.hasOwnProperty(this.field) )
+					return 	"Total "+ this.field +": " + data[this.field] + '\n' + temp + "%";
 				return "label function error!";
 			}
 			private var defaultChartData:ArrayCollection = new ArrayCollection( [
@@ -32,7 +32,7 @@
 			private var labelFunc:Function;
 			private var defaultProperties:Object = {
 				labelFunc: default_label_func,
-				labelPosition: "callout"
+				labelPosition: "inside"
 			};
 			/**
 			 * @param field a <code>String</code> Specifies the field of the data provider that determines the data of each wedge of the PieChart control.

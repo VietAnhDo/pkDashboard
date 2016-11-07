@@ -7,28 +7,77 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import mx.charts.series.ColumnSeries;
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.graphics.SolidColorStroke;
-			
-			[Bindable]
-			private var costData:ArrayCollection = new ArrayCollection( [
+			private var defaultColumnSeries:Array = [
+				{yField: "Planned", displayName: "Planned display"},
+				{yField: "Actual", displayName: "Actual display"},
+				{yField: "Budget", displayName: "Budget display"},
+			];
+			private var defaultChartData:ArrayCollection = new ArrayCollection( [
 				{ProjectName:"PK project", Budget: 100000000, Planned:80000000, Actual: 70000000},
 				/*{ProjectName:"PK project", Budget: 100000000, Planned:80000000, Actual: 70000000}*/
 			]);
-			[Bindable]
-			private var categoryField:String = "ProjectName";
 			
-			public function load_data(data:Object):void {
-				this.chart.dataProvider = data.dataProvider;
-				this.categoryField = data.categoryField;
-				this.columnSet.series = [];
-				var columnSeries:ColumnSeries;
-				for each(var yField:String in data.fields) {
-					columnSeries = new ColumnSeries();
-					columnSeries.yField = yField;
-					columnSeries.displayName = yField;
-					this.columnSet.series.push(columnSeries);
+			[Bindable]
+			public function get chartData():ArrayCollection
+			{
+				if(_chartData != null)
+					chart.width = _chartData.length * 200;
+				return _chartData;
+			}
+
+			public function set chartData(value:ArrayCollection):void
+			{
+				_chartData = value;
+			}
+
+			[Bindable]
+			public function get columnSeries():Array
+			{
+				return _columnSeries;
+			}
+			
+			public function set columnSeries(data:Array):void
+			{
+				var newColumnSeries:ColumnSeries;
+				var attr:String;
+				var columnSeries:Object;
+				_columnSeries = []
+				for each(columnSeries in data) {
+					if(columnSeries.hasOwnProperty("yField") && columnSeries.hasOwnProperty("displayName")) {
+						newColumnSeries = new ColumnSeries();
+						for each(attr in  ["yField", "displayName", "labelFunction", "labelPosition"]) {
+							if(columnSeries!=null && columnSeries.hasOwnProperty(attr))
+								newColumnSeries[attr] = columnSeries[attr];
+						}
+						_columnSeries.push(newColumnSeries);
+					}
+				}
+			}
+			
+			[Bindable]
+			private var categoryField:String;// = "ProjectName";
+			private var _columnSeries:Array;
+			[Bindable]
+			private var columnSetType:String;
+			private var _chartData:ArrayCollection;
+			private var defaultProperties:Object = {
+				columnSetType: "clustered"
+			}
+
+			public function load_data(categoryField:String, chartData:ArrayCollection, columnSeries:Array, option:Object=null):void {
+				this.chartData = chartData;
+				this.categoryField = categoryField;
+				this.columnSeries = columnSeries;
+				for each(var attr:String in ["columnSetType"]) {
+					if( option != null && option.hasOwnProperty(attr) ) {
+						this[attr] = option[attr];
+					}
+					else
+						this[attr] = defaultProperties[attr];
 				}
 			}
 			
@@ -38,6 +87,8 @@
 				var s:SolidColorStroke = new SolidColorStroke(0x333333,1);
 				hori.setStyle("axisStroke",s);
 				vert.setStyle("axisStroke",s);
+				// default data
+				this.load_data("ProjectName", defaultChartData, defaultColumnSeries, null);
 			}
 			
 		]]>
@@ -47,41 +98,39 @@
 	<s:layout>
 		<s:HorizontalLayout padding="5"/>
 	</s:layout>
-	
-	<mx:ColumnChart id="chart" color="0x323232"
-					showDataTips="true" dataProvider="{costData}" height="100%" width="100%">
-		
-		<mx:horizontalAxis>
-			<mx:CategoryAxis categoryField="{categoryField}" id="horizontalAxis"/>
-		</mx:horizontalAxis>
-		<mx:verticalAxis>
-			<mx:LinearAxis id="vertizontalAxis"/>
-		</mx:verticalAxis>
-		
-		<mx:verticalAxisRenderers>
-			<mx:AxisRenderer id='vert' axis="{vertizontalAxis}">
-			</mx:AxisRenderer>
-		</mx:verticalAxisRenderers>
-		
-		<mx:horizontalAxisRenderers>
-			<mx:AxisRenderer id='hori' axis="{horizontalAxis}">
+	<s:Scroller height='100%' width='100%'>
+		<s:Group id='group'>
+			<mx:ColumnChart id="chart" color="0x323232"	showDataTips="true" dataProvider="{chartData}" height="180">
 				
-			</mx:AxisRenderer>
-		</mx:horizontalAxisRenderers>
-		
-		<mx:seriesFilters>
-			<!--<s:DropShadowFilter distance="1" color="0x333333" alpha="1"/>-->
-		</mx:seriesFilters>
-		
-		<mx:series>
-			<mx:ColumnSet type="clustered" id="columnSet">
-				<mx:ColumnSeries yField="Budget" displayName="Budget"/>
-				<mx:ColumnSeries yField="Planned" displayName="Planned"/>
-				<mx:ColumnSeries yField="Actual" displayName="Actual"/>	
-			</mx:ColumnSet>
-			
-		</mx:series>
-	</mx:ColumnChart>
-	
+				<mx:horizontalAxis>
+					<mx:CategoryAxis categoryField="{categoryField}" id="horizontalAxis"/>
+				</mx:horizontalAxis>
+				<mx:verticalAxis>
+					<mx:LinearAxis id="vertizontalAxis"/>
+				</mx:verticalAxis>
+				
+				<mx:verticalAxisRenderers>
+					<mx:AxisRenderer id='vert' axis="{vertizontalAxis}">
+					</mx:AxisRenderer>
+				</mx:verticalAxisRenderers>
+				
+				<mx:horizontalAxisRenderers>
+					<mx:AxisRenderer id='hori' axis="{horizontalAxis}">
+						
+					</mx:AxisRenderer>
+				</mx:horizontalAxisRenderers>
+				
+				<mx:seriesFilters>
+					<!--<s:DropShadowFilter distance="1" color="0x333333" alpha="1"/>-->
+				</mx:seriesFilters>
+				
+				<mx:series>
+					<mx:ColumnSet type="{columnSetType}" id="columnSet" series="{columnSeries}">
+					</mx:ColumnSet>
+					
+				</mx:series>
+			</mx:ColumnChart>
+		</s:Group>
+	</s:Scroller>
 	<mx:Legend dataProvider="{chart}" color="0x323232"/>
 </s:Panel>

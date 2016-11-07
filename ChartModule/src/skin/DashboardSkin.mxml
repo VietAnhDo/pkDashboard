@@ -89,6 +89,17 @@
         <s:layout>
             <s:VerticalLayout/>
         </s:layout>
+		<s:HGroup height="20" width="100%">
+			<s:Button id="addPieButton" label="add pie chart">
+				
+			</s:Button>
+			<s:Button id="addBarButton" label="add bar chart">
+				
+			</s:Button>
+			<s:Button id="addColumnButton" label="add column chart">
+				
+			</s:Button>
+		</s:HGroup>
 		<s:HGroup id="topGroup" height="100%" width="100%">
 			
 		</s:HGroup>
