@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 height="100%" width="100%">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var costData:ArrayCollection = new ArrayCollection( [
+				{ProjectName:"PK project", Budget: 100000000, Planned:80000000, Actual: 70000000},
+				/*{ProjectName:"PK project", Budget: 100000000, Planned:80000000, Actual: 70000000}*/
+			]);
+			[Bindable]
+			private var categoryField:String = "ProjectName";
+			
+			public function load_data(data:Object):void {
+				this.chart.dataProvider = data.dataProvider;
+				this.categoryField = data.categoryField;
+				this.columnSet.series = [];
+				var columnSeries:ColumnSeries;
+				for each(var yField:String in data.fields) {
+					columnSeries = new ColumnSeries();
+					columnSeries.yField = yField;
+					columnSeries.displayName = yField;
+					this.columnSet.series.push(columnSeries);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	
+	<mx:ColumnChart id="chart" color="0x323232"
+					showDataTips="true" dataProvider="{costData}" height="100%" width="100%">
+		
+		<mx:horizontalAxis>
+			<mx:CategoryAxis categoryField="{categoryField}"/>
+		</mx:horizontalAxis>
+		
+		<mx:seriesFilters>
+			<!--<s:DropShadowFilter distance="1" color="0x333333" alpha="1"/>-->
+		</mx:seriesFilters>
+		
+		<mx:series>
+			<mx:ColumnSet type="clustered" id="columnSet">
+				<mx:ColumnSeries yField="Budget" displayName="Budget"/>
+				<mx:ColumnSeries yField="Planned" displayName="Planned"/>
+				<mx:ColumnSeries yField="Actual" displayName="Actual"/>	
+			</mx:ColumnSet>
+			
+		</mx:series>
+	</mx:ColumnChart>
+	
+	<mx:Legend dataProvider="{chart}" color="0x323232"/>
+</s:Panel>

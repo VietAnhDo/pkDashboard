@@ -2,7 +2,18 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" 
-			   minWidth="955" 
-			   minHeight="600">
+			   xmlns:Charts="Charts.*" xmlns:Dashboard="Dashboard.*"
+			   height="100%" width="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<s:Group height="100%" width="100%">
+		<s:layout>
+			<s:VerticalLayout padding="5"/>
+		</s:layout>
+		<Dashboard:Dashboard height="100%" width="100%">
+			
+		</Dashboard:Dashboard>
+	</s:Group>
 	
 </s:Application>

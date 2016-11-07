@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 height="100%" width="100%">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			private function default_label_func(data:Object, field:String, index:Number, percentValue:Number):String {
+				var temp:String= "" + Math.round(percentValue*100)/100;
+				if( data.hasOwnProperty(this.nameField) && data.hasOwnProperty(this.field) )
+					return data[this.nameField] + ": " + '\n' + "Total "+ this.field +": " + data[this.field] + '\n' + temp + "%";
+				return "label function error!";
+			}
+			
+			[Bindable]
+			private var labelPosition:String = "callout";
+			[Bindable]
+			private var field:String = "Gold";
+			[Bindable]
+			private var nameField:String = "Country";
+			[Bindable]
+			private var chartData:ArrayCollection = new ArrayCollection( [
+				{ Country: "USA", Gold: 35, Silver:39, Bronze: 29 },
+				{ Country: "China", Gold: 32, Silver:17, Bronze: 14 },
+				{ Country: "Russia", Gold: 27, Silver:27, Bronze: 38 },
+			]);
+			[Bindable]
+			private var labelFunc:Function = default_label_func;
+			private var defaultProperties:Object = {
+				labelFunc: default_label_func,
+				labelPosition: "none"
+			};
+			/**
+			 * @param field a <code>String</code> Specifies the field of the data provider that determines the data of each wedge of the PieChart control.
+			 * @param nameField a <code>String</code> Specifies the field of the data provider that determines the name of each wedge of the PieChart control.
+			 * @param chartData a <code>ArrayCollection</code> chart's data provider
+			 * @param option  a <code>Object</code> extra data that specifies some other attributes for chart
+			 * 		<table>
+			 * 			<tr><td>labelFunc</td><td>Function</td></tr>
+			 * 			<tr><td>labelFunction</td><td>"none", "callout", "inside", "outside", "insideWithCallout"</td></tr>
+			 * 		</table>
+			 */
+			public function load_data(field:String, nameField: String, chartData: ArrayCollection, option:Object=null):void {
+				this.field = field;
+				this.nameField = nameField;
+				this.chartData = chartData;
+				var attr:String;
+				for each(attr in ["labelFunc", "labelPosition"]) {
+					if(option != null && option.hasOwnProperty(attr)) {
+						this[attr] = option[attr];
+					}
+					else
+						this[attr] = defaultProperties[attr];
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"/>
+	</s:layout>
+	
+	<mx:PieChart id="chart" height="100%" width="100%" paddingRight="5" paddingLeft="5" color="0x323232"
+				 showDataTips="true" dataProvider="{chartData}">
+		<mx:series>
+			<mx:PieSeries id="pieSeries" labelPosition="{labelPosition}" field="{field}" labelFunction="{labelFunc}" nameField="{nameField}"
+						  height='100%' width="100%">
+				<mx:filters>
+					<!--<s:DropShadowFilter distance="1" color="0x333333" alpha="1"/>-->
+				</mx:filters>
+				<mx:fills>
+					<s:SolidColor color="0xee3333"/>
+					<s:SolidColor color="0xdd9911"/>
+					<s:SolidColor color="0x77dd44"/>
+				</mx:fills>
+				<mx:calloutStroke>
+					<s:SolidColorStroke weight="0" color="0x888888"/>
+				</mx:calloutStroke>
+				<mx:radialStroke>
+					<s:SolidColorStroke weight="0" color="#FFFFFF"/>
+				</mx:radialStroke>
+			</mx:PieSeries>
+		</mx:series>
+	</mx:PieChart>
+	<mx:Legend dataProvider="{chart}" color="0x323232"/>
+</s:Panel>
